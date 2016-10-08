@@ -43,20 +43,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return;
         }
 
-        // Initializes Bluetooth adapter.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-
-        // Ensures Bluetooth is available on the device and it is enabled. If not,
-        // displays a dialog requesting user permission to enable Bluetooth.
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-
-
-
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
                 == PackageManager.PERMISSION_DENIED ||
@@ -73,7 +59,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
             Toast.makeText(getApplicationContext(), "Already have permissions", Toast.LENGTH_LONG).show();
 
+            // call enable bluetooth
+            enableBT();
+
         }
+
 
 
     }
@@ -84,8 +74,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 || grantResults[1] == PackageManager.PERMISSION_DENIED
                 || grantResults[2] == PackageManager.PERMISSION_DENIED) {
             Toast.makeText(getApplicationContext(), "Give me permissions you bastard", Toast.LENGTH_LONG).show();
+            return;
         } else {
             Toast.makeText(getApplicationContext(), "Thanks for permissions you bastard", Toast.LENGTH_LONG).show();
+
+            // call enable bluetooth
+            enableBT();
         }
     }
 
@@ -110,12 +104,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void run() {
                 //mScanning = false;
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                //mBluetoothAdapter.stopLeScan(mLeScanCallback);
             }
         }, SCAN_PERIOD);
 
         //mScanning = true;
-        mBluetoothAdapter.startLeScan(mLeScanCallback);
+        //mBluetoothAdapter.startLeScan(mLeScanCallback);
+    }
+
+    private void enableBT() {
+
+        // Initializes Bluetooth adapter.
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+
+        // Ensures Bluetooth is available on the device and it is enabled. If not,
+        // displays a dialog requesting user permission to enable Bluetooth.
+        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
     }
 
 
