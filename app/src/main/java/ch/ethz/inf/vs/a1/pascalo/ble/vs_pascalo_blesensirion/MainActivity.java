@@ -50,6 +50,8 @@ public class MainActivity
     private LocationProvider mLocationProvider;
     public static ArrayAdapter<BluetoothDevice> mDevices;
 
+    private OurScanCallback callback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +112,9 @@ public class MainActivity
             // call enable bluetooth
             enableBT();
 
+            //call enable location service
+            enableLS();
+
         }
 
         ScanFilter.Builder scanFilterBuilder = new ScanFilter.Builder()
@@ -130,6 +135,9 @@ public class MainActivity
 
             // call enable bluetooth
             enableBT();
+
+            //call enable location service
+            enableLS();
         }
     }
 
@@ -154,13 +162,13 @@ public class MainActivity
             public void run() {
                 //mScanning = false;
                 //mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                //mBluetoothLeScanner.stopScan(callback);
+                mBluetoothLeScanner.stopScan(callback);
             }
         }, SCAN_PERIOD);
 
         //mScanning = true;
         //mBluetoothAdapter.startLeScan(mLeScanCallback);
-        //mBluetoothLeScanner.startScan(scanFilters, ScanSettings.CALLBACK_TYPE_ALL_MATCHES, callback);
+        mBluetoothLeScanner.startScan(scanFilters, ScanSettings.CALLBACK_TYPE_ALL_MATCHES, callback);
     }
 
     private void enableBT() {
