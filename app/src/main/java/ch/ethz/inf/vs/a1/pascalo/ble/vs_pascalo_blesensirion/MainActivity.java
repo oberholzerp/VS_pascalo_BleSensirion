@@ -2,10 +2,14 @@ package ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 import android.content.Intent;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -14,18 +18,30 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
+import java.util.List;
+import android.bluetooth.le.ScanFilter.Builder;
+import android.bluetooth.le.ScanSettings;
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
+import ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS;
+
+public class MainActivity
+        extends AppCompatActivity
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private final int MY_PERMISSIONS_REQUEST = 42;
 
 
     private final int REQUEST_ENABLE_BT = 0;
+    private final int REQUEST_ENABLE_LS = 0;
     private static final long SCAN_PERIOD = 10000;
 
     private BluetoothAdapter mBluetoothAdapter;
     private Handler mHandler;
+    private BluetoothLeScanner mBluetoothLeScanner;
+    private List<ScanFilter> scanFilters;
+
+    private LocationProvider mLocationProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +65,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
                 == PackageManager.PERMISSION_DENIED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_DENIED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_DENIED) {
 
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{
+                            Manifest.permission.BLUETOOTH,
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
                     MY_PERMISSIONS_REQUEST);
         } else {
 
@@ -64,7 +87,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         }
 
-
+        ScanFilter.Builder scanFilterBuilder = new ScanFilter.Builder()
+                .setDeviceName("Smart Humigadget");
+        scanFilters.add(scanFilterBuilder.build());
 
     }
 
@@ -105,19 +130,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 //mScanning = false;
                 //mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                //mBluetoothLeScanner.stopScan(callback);
             }
         }, SCAN_PERIOD);
 
         //mScanning = true;
         //mBluetoothAdapter.startLeScan(mLeScanCallback);
+        //mBluetoothLeScanner.startScan(scanFilters, ScanSettings.CALLBACK_TYPE_ALL_MATCHES, callback);
     }
 
     private void enableBT() {
-
         // Initializes Bluetooth adapter.
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
+        mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
         // Ensures Bluetooth is available on the device and it is enabled. If not,
         // displays a dialog requesting user permission to enable Bluetooth.
@@ -125,7 +152,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             Intent enableBtIntent = new Intent(ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
+    }
 
+    private void enableLS() {
+        //initializes Bluetooth adapter
+        final LocationManager locationManager =
+                (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mLocationProvider = locationManager.getProvider("");
+
+        //ensures location service is available on the device and it is enabled
+        //if not, displays a dialog requesting user permission to enable location service
+        if (mLocationProvider == null) {
+            Intent enableLsIntent = new Intent(ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableLsIntent, REQUEST_ENABLE_LS);
+        }
     }
 
 
