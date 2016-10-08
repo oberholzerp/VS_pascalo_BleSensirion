@@ -6,6 +6,8 @@ import android.bluetooth.le.ScanSettings;
 
 import java.util.List;
 
+import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.R.id.add;
+
 
 class OurScanCallback extends ScanCallback {
 
@@ -24,7 +26,7 @@ class OurScanCallback extends ScanCallback {
         if (callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
 
             // Call into main to add device to listview?
-
+            MainActivity.mDevices.add(result.getDevice());
 
         }
 

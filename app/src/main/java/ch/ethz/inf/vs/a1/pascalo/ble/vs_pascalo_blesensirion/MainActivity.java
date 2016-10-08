@@ -1,6 +1,7 @@
 package ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanFilter;
@@ -15,6 +16,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +48,7 @@ public class MainActivity
     private List<ScanFilter> scanFilters;
 
     private LocationProvider mLocationProvider;
+    public static ArrayAdapter<BluetoothDevice> mDevices;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,16 +56,34 @@ public class MainActivity
         setContentView(R.layout.activity_main);
         mHandler = new Handler();
 
-        TextView body = (TextView) findViewById(R.id.body_text);
+        mDevices = new ArrayAdapter<BluetoothDevice>(getApplicationContext(),R.layout.activity_main, R.id.devicesListView) /*{
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
 
-        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
-            body.setText(R.string.ble_enabled);
-        }
-        else {
-            body.setText(R.string.ble_disabled);
+
+                View itemView = null;
+
+                if (convertView == null) {
+                    LayoutInflater inflater = (LayoutInflater) parent.getContext()
+                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    itemView = inflater.inflate(R.layout.table_row, null);
+                } else {
+                    itemView = convertView;
+                }
+
+                // play with itemView
+
+                return itemView;
+
+
+            }
+        }*/;
+
+
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+            //something went really wrong, our manifest states that BLE is a requirement
             return;
         }
-
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
                 == PackageManager.PERMISSION_DENIED ||
@@ -112,13 +137,12 @@ public class MainActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == REQUEST_ENABLE_BT) {
-            TextView body = (TextView) findViewById(R.id.body_text);
 
             if (resultCode == RESULT_OK) {
-                body.setText("Bluetooth is on");
+                Toast.makeText(getApplicationContext(), "Bluetooth is on", Toast.LENGTH_LONG).show();
             }
             else {
-                body.setText("Bluetooth is off");
+                Toast.makeText(getApplicationContext(), "Bluetooth is off", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -166,6 +190,10 @@ public class MainActivity
             Intent enableLsIntent = new Intent(ACTION_REQUEST_ENABLE);
             startActivityForResult(enableLsIntent, REQUEST_ENABLE_LS);
         }
+    }
+
+    public void addDeviceToListview (BluetoothDevice device) {
+        mDevices.add(device);
     }
 
 
