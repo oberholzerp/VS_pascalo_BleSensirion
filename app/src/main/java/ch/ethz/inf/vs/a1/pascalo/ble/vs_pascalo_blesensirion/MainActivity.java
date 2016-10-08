@@ -16,19 +16,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import java.util.LinkedList;
 import java.util.List;
-import android.bluetooth.le.ScanFilter.Builder;
 import android.bluetooth.le.ScanSettings;
 
-import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
 import ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS;
 
 public class MainActivity
@@ -37,10 +30,11 @@ public class MainActivity
 
     private final int MY_PERMISSIONS_REQUEST = 42;
 
+    // These request finals serve to distinguish requests, they must not both be the same
+    private final int REQUEST_ENABLE_BT = 5;
+    private final int REQUEST_ENABLE_LS = 7;
 
-    private final int REQUEST_ENABLE_BT = 0;
-    private final int REQUEST_ENABLE_LS = 0;
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 30000;
 
     private BluetoothAdapter mBluetoothAdapter;
     private Handler mHandler;
@@ -48,17 +42,27 @@ public class MainActivity
     private List<ScanFilter> scanFilters;
 
     private LocationProvider mLocationProvider;
-    public static ArrayAdapter<BluetoothDevice> mDevices;
+    private ArrayAdapter<BluetoothDevice> mDevices;
 
-    private OurScanCallback callback;
+    private OurScanCallback mScanCallback;
+
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+            //something went really wrong, our manifest states that BLE is a requirement
+            return;
+        }
+
         mHandler = new Handler();
 
         mDevices = new ArrayAdapter<BluetoothDevice>(getApplicationContext(),R.layout.activity_main, R.id.devicesListView) /*{
+
+            //In this override we can make the Listview prettier
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -81,22 +85,23 @@ public class MainActivity
             }
         }*/;
 
+        scanFilters = new LinkedList<ScanFilter>();
+        scanFilters.add(new ScanFilter.Builder().setDeviceName("Smart Humigadget").build());
 
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
-            //something went really wrong, our manifest states that BLE is a requirement
-            return;
-        }
+        mScanCallback = new OurScanCallback(this);
 
+        // Check for and if neccessary request some permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
                 == PackageManager.PERMISSION_DENIED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
-                == PackageManager.PERMISSION_DENIED ||
+                        == PackageManager.PERMISSION_DENIED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_DENIED ||
+                        == PackageManager.PERMISSION_DENIED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_DENIED) {
+                        == PackageManager.PERMISSION_DENIED) {
 
 
+            // This request is async, it returns in onRequestPermissionResult, so watch the control flow
             ActivityCompat.requestPermissions(this,
                     new String[]{
                             Manifest.permission.BLUETOOTH,
@@ -105,53 +110,71 @@ public class MainActivity
                             Manifest.permission.ACCESS_COARSE_LOCATION
                     },
                     MY_PERMISSIONS_REQUEST);
+
         } else {
+            Log.d(TAG, "Already have permissions");
 
-            Toast.makeText(getApplicationContext(), "Already have permissions", Toast.LENGTH_LONG).show();
-
-            // call enable bluetooth
-            enableBT();
-
-            //call enable location service
-            enableLS();
-
+            // unify control flow
+            doFurtherSetup();
         }
-
-        ScanFilter.Builder scanFilterBuilder = new ScanFilter.Builder()
-                .setDeviceName("Smart Humigadget");
-        scanFilters.add(scanFilterBuilder.build());
-
     }
 
     @Override
     public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
         if (grantResults[0] == PackageManager.PERMISSION_DENIED
                 || grantResults[1] == PackageManager.PERMISSION_DENIED
-                || grantResults[2] == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(getApplicationContext(), "Give me permissions you bastard", Toast.LENGTH_LONG).show();
+                || grantResults[2] == PackageManager.PERMISSION_DENIED
+                || grantResults[3] == PackageManager.PERMISSION_DENIED) {
+
+            Log.d(TAG, "Can't do my job without permissions");
             return;
+
         } else {
-            Toast.makeText(getApplicationContext(), "Thanks for permissions you bastard", Toast.LENGTH_LONG).show();
 
-            // call enable bluetooth
-            enableBT();
+            Log.d(TAG, "Thanks for permissions you bastard");
 
-            //call enable location service
-            enableLS();
+            // unify control flow
+            doFurtherSetup();
         }
+    }
+
+    // This method is basically just needed to unify control flow, from where we had permissions
+    // already and from where we were granted those we didn't have. All further activity continues here.
+    private void doFurtherSetup() {
+
+        // call enable bluetooth
+        enableBT();
+
+        //call enable location service
+        enableLS();
+
+        scanForDevices();
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == REQUEST_ENABLE_BT) {
+        switch (requestCode) {
 
-            if (resultCode == RESULT_OK) {
-                Toast.makeText(getApplicationContext(), "Bluetooth is on", Toast.LENGTH_LONG).show();
-            }
-            else {
-                Toast.makeText(getApplicationContext(), "Bluetooth is off", Toast.LENGTH_LONG).show();
-            }
+            case REQUEST_ENABLE_BT:
+                if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Bluetooth is on");
+                }
+                else {
+                    Log.d(TAG, "Bluetooth is off");
+                }
+                break;
+
+            case REQUEST_ENABLE_LS:
+                if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Location service is on");
+                }
+                else {
+                    Log.d(TAG, "Location service is off");
+                }
+                break;
+
         }
     }
 
@@ -162,13 +185,15 @@ public class MainActivity
             public void run() {
                 //mScanning = false;
                 //mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                mBluetoothLeScanner.stopScan(callback);
+                Log.d(TAG, "Scan is stopping");
+                mBluetoothLeScanner.stopScan(mScanCallback);
             }
         }, SCAN_PERIOD);
 
         //mScanning = true;
         //mBluetoothAdapter.startLeScan(mLeScanCallback);
-        mBluetoothLeScanner.startScan(scanFilters, ScanSettings.CALLBACK_TYPE_ALL_MATCHES, callback);
+        Log.d(TAG, "Scan is starting");
+        mBluetoothLeScanner.startScan(scanFilters, new ScanSettings.Builder().build(), mScanCallback);
     }
 
     private void enableBT() {
@@ -181,7 +206,7 @@ public class MainActivity
         // Ensures Bluetooth is available on the device and it is enabled. If not,
         // displays a dialog requesting user permission to enable Bluetooth.
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(ACTION_REQUEST_ENABLE);
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
     }
@@ -195,7 +220,7 @@ public class MainActivity
         //ensures location service is available on the device and it is enabled
         //if not, displays a dialog requesting user permission to enable location service
         if (mLocationProvider == null) {
-            Intent enableLsIntent = new Intent(ACTION_REQUEST_ENABLE);
+            Intent enableLsIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableLsIntent, REQUEST_ENABLE_LS);
         }
     }
@@ -203,6 +228,5 @@ public class MainActivity
     public void addDeviceToListview (BluetoothDevice device) {
         mDevices.add(device);
     }
-
 
 }
