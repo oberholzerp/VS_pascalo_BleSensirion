@@ -32,6 +32,7 @@ class OurScanCallback extends ScanCallback {
 
         Log.d(TAG, "onScanResult was called");
         Log.d(TAG, result.getDevice().toString());
+        Log.d(TAG, String.valueOf(callbackType) + " whereas it should be " + String.valueOf(ScanSettings.CALLBACK_TYPE_ALL_MATCHES));
 
         if (callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
 

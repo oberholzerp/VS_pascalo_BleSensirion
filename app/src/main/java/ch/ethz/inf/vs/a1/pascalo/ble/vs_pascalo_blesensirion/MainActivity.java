@@ -114,8 +114,9 @@ public class MainActivity
         } else {
             Log.d(TAG, "Already have permissions");
 
-            // unify control flow
-            doFurtherSetup();
+            // Since we already have permissions we continue with actually enabling the bluetooth service
+            // This re-unifies the control flow from onCreate and onRequestPermissionsResult
+            enableBT();
         }
     }
 
@@ -133,23 +134,10 @@ public class MainActivity
 
             Log.d(TAG, "Thanks for permissions you bastard");
 
-            // unify control flow
-            doFurtherSetup();
+            // Now that we have permissions we continue with actually enabling the bluetooth service
+            // This re-unifies the control flow from onCreate and onRequestPermissionsResult
+            enableBT();
         }
-    }
-
-    // This method is basically just needed to unify control flow, from where we had permissions
-    // already and from where we were granted those we didn't have. All further activity continues here.
-    private void doFurtherSetup() {
-
-        // call enable bluetooth
-        enableBT();
-
-        //call enable location service
-        enableLS();
-
-        scanForDevices();
-
     }
 
     @Override
@@ -160,18 +148,27 @@ public class MainActivity
             case REQUEST_ENABLE_BT:
                 if (resultCode == RESULT_OK) {
                     Log.d(TAG, "Bluetooth is on");
+
+                    mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                    // continue with enabling the location service, now that bluetooth is on
+                    enableLS();
                 }
                 else {
                     Log.d(TAG, "Bluetooth is off");
+                    return;
                 }
                 break;
 
             case REQUEST_ENABLE_LS:
                 if (resultCode == RESULT_OK) {
                     Log.d(TAG, "Location service is on");
+
+                    //  now that both bluetooth and location services are on we can continue with the scan
+                    scanForDevices();
                 }
                 else {
                     Log.d(TAG, "Location service is off");
+                    return;
                 }
                 break;
 
@@ -201,13 +198,18 @@ public class MainActivity
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
         // Ensures Bluetooth is available on the device and it is enabled. If not,
         // displays a dialog requesting user permission to enable Bluetooth.
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+
+            mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+
+            // continue with enabling the location service, since bluetooth is already on
+            enableLS();
         }
     }
 
@@ -222,11 +224,18 @@ public class MainActivity
         if (mLocationProvider == null) {
             Intent enableLsIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableLsIntent, REQUEST_ENABLE_LS);
+        } else {
+
+            //  now that both bluetooth and location services are on we can continue with the scan
+            scanForDevices();
+
         }
     }
 
     public void addDeviceToListview (BluetoothDevice device) {
+        Log.d(TAG, "Main got a device for the listview: " + device.toString());
         mDevices.add(device);
+        mDevices.notifyDataSetChanged();
     }
 
 }
