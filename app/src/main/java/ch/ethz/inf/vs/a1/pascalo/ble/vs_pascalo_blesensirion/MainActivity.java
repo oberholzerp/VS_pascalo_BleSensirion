@@ -227,6 +227,7 @@ public class MainActivity
             Toast.makeText(this, "Turn on location services", Toast.LENGTH_LONG).show();
 
             // After the user returns from the settings our control flow continues from onStart()
+
             this.startActivity(locationSettingsIntent);
 
         } else {
