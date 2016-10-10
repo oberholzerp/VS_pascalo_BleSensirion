@@ -5,15 +5,20 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.util.Log;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 class OurScanCallback extends ScanCallback {
 
     private MainActivity mMainActivity;
     private static final String TAG = "OurScanCallback";
+    private Set<BluetoothDevice> mDevices;
 
     public OurScanCallback(MainActivity main) {
         mMainActivity = main;
+        mDevices = new HashSet<BluetoothDevice>();
     }
 
     @Override
@@ -39,7 +44,10 @@ class OurScanCallback extends ScanCallback {
             // Call into main to add device to listview?
             BluetoothDevice device = result.getDevice();
             if (null != device) {
-                mMainActivity.addDeviceToListview(device);
+                // Only hand the device over to main if it's a new one, implementation using a set
+                int t = mDevices.size();
+                mDevices.add(device);
+                if (mDevices.size() > t) mMainActivity.addDeviceToListview(device);
             }
         }
     }

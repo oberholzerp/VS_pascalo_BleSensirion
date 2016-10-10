@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +21,7 @@ import android.widget.ArrayAdapter;
 import java.util.LinkedList;
 import java.util.List;
 import android.bluetooth.le.ScanSettings;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS;
@@ -31,10 +31,7 @@ public class MainActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private final int MY_PERMISSIONS_REQUEST = 42;
-
-    // These request finals serve to distinguish requests, they must not both be the same
     private final int REQUEST_ENABLE_BT = 5;
-    private final int REQUEST_ENABLE_LS = 7;
 
     private static final long SCAN_PERIOD = 30000;
 
@@ -43,7 +40,6 @@ public class MainActivity
     private BluetoothLeScanner mBluetoothLeScanner;
     private List<ScanFilter> scanFilters;
 
-    private LocationProvider mLocationProvider;
     private ArrayAdapter<BluetoothDevice> mDevices;
 
     private OurScanCallback mScanCallback;
@@ -61,31 +57,10 @@ public class MainActivity
         }
 
         mHandler = new Handler();
+        mDevices = new BluetoothDevicesArrayAdapter<BluetoothDevice>(getApplicationContext(), android.R.layout.simple_list_item_1);
 
-        mDevices = new ArrayAdapter<BluetoothDevice>(getApplicationContext(), R.layout.activity_main, R.id.devicesListView) /*{
-
-            //In this override we can make the Listview prettier
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-
-
-                View itemView = null;
-
-                if (convertView == null) {
-                    LayoutInflater inflater = (LayoutInflater) parent.getContext()
-                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    itemView = inflater.inflate(R.layout.table_row, null);
-                } else {
-                    itemView = convertView;
-                }
-
-                // play with itemView
-
-                return itemView;
-
-
-            }
-        }*/;
+        ListView lv = (ListView) findViewById(R.id.listView);
+        lv.setAdapter(mDevices);
 
         scanFilters = new LinkedList<ScanFilter>();
         scanFilters.add(new ScanFilter.Builder().setDeviceName("Smart Humigadget").build());
@@ -186,8 +161,6 @@ public class MainActivity
             }
         }, SCAN_PERIOD);
 
-        //mScanning = true;
-        //mBluetoothAdapter.startLeScan(mLeScanCallback);
         Log.d(TAG, "Scan is starting");
         mBluetoothLeScanner.startScan(scanFilters, new ScanSettings.Builder().build(), mScanCallback);
     }
@@ -217,7 +190,6 @@ public class MainActivity
 
         LocationManager locationManager =
                 (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mLocationProvider = locationManager.getProvider("");
 
         //ensures location service is available on the device and it is enabled
         //if not, displays a dialog requesting user permission to enable location service
@@ -241,7 +213,6 @@ public class MainActivity
     public void addDeviceToListview (BluetoothDevice device) {
         Log.d(TAG, "Main got a device for the listview: " + device.toString());
         mDevices.add(device);
-        mDevices.notifyDataSetChanged();
     }
 
 }
