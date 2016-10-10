@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import android.widget.ArrayAdapter;
 import java.util.LinkedList;
 import java.util.List;
 import android.bluetooth.le.ScanSettings;
+import android.widget.Toast;
 
 import ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS;
 
@@ -53,14 +55,14 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             //something went really wrong, our manifest states that BLE is a requirement
             return;
         }
 
         mHandler = new Handler();
 
-        mDevices = new ArrayAdapter<BluetoothDevice>(getApplicationContext(),R.layout.activity_main, R.id.devicesListView) /*{
+        mDevices = new ArrayAdapter<BluetoothDevice>(getApplicationContext(), R.layout.activity_main, R.id.devicesListView) /*{
 
             //In this override we can make the Listview prettier
             @Override
@@ -90,6 +92,17 @@ public class MainActivity
 
         mScanCallback = new OurScanCallback(this);
 
+    }
+
+    public void onStart() {
+        super.onStart();
+
+        // Took this out of onCreate so the app continues here once the user returns from a context switch
+        checkAndGetPermissions();
+
+    }
+
+    private void checkAndGetPermissions() {
         // Check for and if neccessary request some permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
                 == PackageManager.PERMISSION_DENIED ||
@@ -213,17 +226,20 @@ public class MainActivity
         }
     }
 
+
     private void enableLS() {
-        //initializes Bluetooth adapter
-        final LocationManager locationManager =
+
+        LocationManager locationManager =
                 (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mLocationProvider = locationManager.getProvider("");
 
         //ensures location service is available on the device and it is enabled
         //if not, displays a dialog requesting user permission to enable location service
-        if (mLocationProvider == null) {
-            Intent enableLsIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableLsIntent, REQUEST_ENABLE_LS);
+        if (!(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
+            Intent locationSettingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            Toast.makeText(this, "Turn on location services", Toast.LENGTH_LONG).show();
+            this.startActivity(locationSettingsIntent);
         } else {
 
             //  now that both bluetooth and location services are on we can continue with the scan
