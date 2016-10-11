@@ -2,4 +2,5 @@
     <string name="app_name">VS_pascalo_BleSensirion</string>
     <string name="ble_enabled">This device supports BLE.</string>
     <string name="ble_disabled">This device does not support BLE.</string>
+    <string name="axis_title">C° / %</string>
 </resources>
