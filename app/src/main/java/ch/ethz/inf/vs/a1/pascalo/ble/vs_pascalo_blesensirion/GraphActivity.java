@@ -32,7 +32,7 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
 
         Intent intent = getIntent();
         mBluetoothDevice = (BluetoothDevice) intent.getParcelableExtra("BluetoothDevice");
-        mGattCallback = new GattCallback();
+        mGattCallback = new GattCallback(getApplicationContext());
         Log.d(TAG, "You've got mail! Device: " + mBluetoothDevice.toString() + " arrived in GraphActivity");
 
         TextView text = (TextView) findViewById(R.id.device_name);
