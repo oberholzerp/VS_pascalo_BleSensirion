@@ -70,6 +70,8 @@ public class MainActivity
             public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
 
                 BluetoothDevice item = (BluetoothDevice) adapter.getItemAtPosition(position);
+                Log.d(TAG, "Scan is stopping, because of button");
+                mBluetoothLeScanner.stopScan(mScanCallback);
 
                 Intent intent = new Intent(MainActivity.this, GraphActivity.class);
                 intent.putExtra("BluetoothDevice", item);
@@ -173,7 +175,7 @@ public class MainActivity
             public void run() {
                 //mScanning = false;
                 //mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                Log.d(TAG, "Scan is stopping");
+                Log.d(TAG, "Scan is stopping, becuase of timing");
                 mBluetoothLeScanner.stopScan(mScanCallback);
             }
         }, SCAN_PERIOD);
