@@ -10,4 +10,32 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.GraphActivity">
 
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:id="@+id/device_name"
+        android:text="Device Name"/>
+
+    <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/temperature"
+    android:text=""
+    android:layout_below="@id/device_name" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/humidity"
+        android:text=""
+        android:layout_below="@id/temperature" />
+
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:id="@+id/graph"
+        android:layout_below="@id/humidity"
+        android:layout_height="wrap_content" />
+
 </RelativeLayout>
