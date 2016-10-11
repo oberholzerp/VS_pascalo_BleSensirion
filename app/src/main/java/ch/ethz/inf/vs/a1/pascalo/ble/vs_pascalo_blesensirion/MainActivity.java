@@ -17,6 +17,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,6 +63,21 @@ public class MainActivity
 
         ListView lv = (ListView) findViewById(R.id.listView);
         lv.setAdapter(mDevices);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+
+                BluetoothDevice item = (BluetoothDevice) adapter.getItemAtPosition(position);
+
+                Intent intent = new Intent(MainActivity.this, GraphActivity.class);
+                intent.putExtra("BluetoothDevice", item);
+                startActivity(intent);
+
+            }
+        });
+
 
         scanFilters = new LinkedList<ScanFilter>();
         scanFilters.add(new ScanFilter.Builder().setDeviceName("Smart Humigadget").build());
