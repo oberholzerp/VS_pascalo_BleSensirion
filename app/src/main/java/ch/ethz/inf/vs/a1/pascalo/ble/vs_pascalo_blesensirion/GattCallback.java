@@ -3,6 +3,7 @@ package ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.UUID;
 
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE;
@@ -56,6 +58,12 @@ public class GattCallback extends BluetoothGattCallback {
             mTemperatureService = gatt.getService(UUID_TEMPERATURE_SERVICE);
             //mHumidityService = gatt.getService(UUID_HUMIDITY_SERVICE);
 
+            BluetoothGattCharacteristic tempChar =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
+            gatt.setCharacteristicNotification(tempChar, true);
+            /*BluetoothGattDescriptor descriptor = tempChar.getDescriptor(UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            tempChar.writeDescriptor(descriptor);*/
+
             Log.d(TAG, "Whe have the following number of characteristics in the temperature service: " + String.valueOf(mTemperatureService.getCharacteristics().size()));
 
             BluetoothGattCharacteristic oldChara =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
@@ -77,18 +85,34 @@ public class GattCallback extends BluetoothGattCallback {
     }
 
     @Override
-    public void onCharacterristicWrite( BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+    public void onCharacteristicWrite( BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
 
         Log.d(TAG, "onCharacterristicWrite reports status of: " + String.valueOf(status));
 
-        //byte[] value = newChara.getValue();
-        //gatt.readCharacteristic()
+        byte[] value = characteristic.getValue();
+        gatt.readCharacteristic(characteristic);
+
+        Log.d(TAG, "First raw value written has a length in Byte of: " + String.valueOf(value.length));
+        Log.d(TAG, "First raw value written has is: " + Arrays.toString(value));
+        Log.d(TAG, "First value written is: " + String.valueOf(convertRawValue(value)));
+
+    }
+
+    @Override
+    public void onCharacteristicRead (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status){
+        byte[] value = characteristic.getValue();
 
         Log.d(TAG, "First raw value to be read has a length in Byte of: " + String.valueOf(value.length));
         Log.d(TAG, "First raw value to be read has is: " + Arrays.toString(value));
         Log.d(TAG, "First value to be read is: " + String.valueOf(convertRawValue(value)));
-
     }
+
+    @Override
+    // Characteristic notification
+    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+        Log.d(TAG, "Characteristic has been changed and the notification received.");
+    }
+
 
     private float convertRawValue(byte[] raw) {
         ByteBuffer wrapper = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN);
