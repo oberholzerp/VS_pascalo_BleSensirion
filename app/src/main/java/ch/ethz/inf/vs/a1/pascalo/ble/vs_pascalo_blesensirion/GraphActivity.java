@@ -9,6 +9,7 @@ import android.util.Log;
 public class GraphActivity extends AppCompatActivity {
 
     private BluetoothDevice mBluetoothDevice;
+    private GattCallback mGattCallback;
     private final String TAG = "GraphActivity";
 
     @Override
@@ -18,9 +19,16 @@ public class GraphActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         mBluetoothDevice = (BluetoothDevice) intent.getParcelableExtra("BluetoothDevice");
-
+        mGattCallback = new GattCallback();
         Log.d(TAG, "You've got mail! Device: " + mBluetoothDevice.toString() + " arrived in GraphActivity");
 
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mBluetoothDevice.connectGatt(getApplicationContext(), true, mGattCallback);
     }
 }
