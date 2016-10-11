@@ -3,4 +3,5 @@
     <string name="ble_enabled">This device supports BLE.</string>
     <string name="ble_disabled">This device does not support BLE.</string>
     <string name="axis_title">C° / %</string>
+    <string name="button_text">Disconnect</string>
 </resources>
