@@ -55,7 +55,7 @@ public class MainActivity
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             //something went really wrong, our manifest states that BLE is a requirement
-            return;
+            finish();
         }
 
         mHandler = new Handler();
@@ -133,7 +133,7 @@ public class MainActivity
                 || grantResults[3] == PackageManager.PERMISSION_DENIED) {
 
             Log.d(TAG, "Can't do my job without permissions");
-            return;
+            finish();
 
         } else {
 
@@ -160,7 +160,7 @@ public class MainActivity
                 }
                 else {
                     Log.d(TAG, "Bluetooth is off");
-                    return;
+                    finish();
                 }
                 break;
         }

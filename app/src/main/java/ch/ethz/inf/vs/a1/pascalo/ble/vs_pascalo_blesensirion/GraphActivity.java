@@ -14,6 +14,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 public class GraphActivity extends AppCompatActivity {
 
     private BluetoothDevice mBluetoothDevice;
+    private GattCallback mGattCallback;
     private final String TAG = "GraphActivity";
 
     @Override
@@ -23,7 +24,7 @@ public class GraphActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         mBluetoothDevice = (BluetoothDevice) intent.getParcelableExtra("BluetoothDevice");
-
+        mGattCallback = new GattCallback();
         Log.d(TAG, "You've got mail! Device: " + mBluetoothDevice.toString() + " arrived in GraphActivity");
 
         TextView text = (TextView) findViewById(R.id.device_name);
@@ -36,5 +37,12 @@ public class GraphActivity extends AppCompatActivity {
         graph.getViewport().setYAxisBoundsManual(false);
         graph.getGridLabelRenderer().setVerticalAxisTitle(getResources().getString(R.string.axis_title));
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mBluetoothDevice.connectGatt(getApplicationContext(), true, mGattCallback);
     }
 }
