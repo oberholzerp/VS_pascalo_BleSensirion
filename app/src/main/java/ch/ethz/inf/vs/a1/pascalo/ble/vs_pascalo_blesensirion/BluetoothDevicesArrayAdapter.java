@@ -1,6 +1,7 @@
 package ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion;
 
 import android.bluetooth.BluetoothDevice;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +41,10 @@ public class BluetoothDevicesArrayAdapter<T> extends ArrayAdapter<T> {
 
         //do a getName instead of a toString here, that's the only real difference
         BluetoothDevice item = (BluetoothDevice) getItem(position);
+
+        // changing text colour because it was white on a SGS7
+        text.setTextColor(Color.BLACK);
+
         text.setText(item.getName() + "\n" + item.getAddress());
 
         return view;
