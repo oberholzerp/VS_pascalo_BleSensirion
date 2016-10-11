@@ -56,6 +56,8 @@ public class GattCallback extends BluetoothGattCallback {
             mTemperatureService = gatt.getService(UUID_TEMPERATURE_SERVICE);
             //mHumidityService = gatt.getService(UUID_HUMIDITY_SERVICE);
 
+            Log.d(TAG, "Whe have the following number of characteristics in the temperature service: " + String.valueOf(mTemperatureService.getCharacteristics().size()));
+
             BluetoothGattCharacteristic oldChara =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
             BluetoothGattCharacteristic newChara = new BluetoothGattCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC, oldChara.getProperties(), oldChara.getPermissions() |  BluetoothGattCharacteristic.PERMISSION_WRITE );
             mTemperatureService.addCharacteristic(newChara);
@@ -65,11 +67,6 @@ public class GattCallback extends BluetoothGattCallback {
             gatt.writeCharacteristic(newChara);
 
 
-            byte[] value = newChara.getValue();
-
-            Log.d(TAG, "First raw value to be read has a length in Byte of: " + String.valueOf(value.length));
-            Log.d(TAG, "First raw value to be read has is: " + Arrays.toString(value));
-            Log.d(TAG, "First value to be read is: " + String.valueOf(convertRawValue(value)));
 
         } else {
 
@@ -77,6 +74,20 @@ public class GattCallback extends BluetoothGattCallback {
             Log.d(TAG, "Service discovery failed in the onServicesDiscovered callback, code: " + String.valueOf(status));
 
         }
+    }
+
+    @Override
+    public void onCharacterristicWrite( BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+
+        Log.d(TAG, "onCharacterristicWrite reports status of: " + String.valueOf(status));
+
+        //byte[] value = newChara.getValue();
+        //gatt.readCharacteristic()
+
+        Log.d(TAG, "First raw value to be read has a length in Byte of: " + String.valueOf(value.length));
+        Log.d(TAG, "First raw value to be read has is: " + Arrays.toString(value));
+        Log.d(TAG, "First value to be read is: " + String.valueOf(convertRawValue(value)));
+
     }
 
     private float convertRawValue(byte[] raw) {
