@@ -52,6 +52,10 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
 
         graph.addSeries(tempSeries);
         graph.addSeries(humidSeries);
+        graph.getViewport().setMaxX(15.0);
+        graph.getViewport().setMinX(0.0);
+        graph.getViewport().setMaxY(100.0);
+        graph.getViewport().setMinY(0.0);
 
         mDisconnectButton = (Button) findViewById(R.id.disconnect_button);
         mDisconnectButton.setOnClickListener(this);

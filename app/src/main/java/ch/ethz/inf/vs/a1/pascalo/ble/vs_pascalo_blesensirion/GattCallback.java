@@ -139,10 +139,10 @@ public class GattCallback extends BluetoothGattCallback {
     // Characteristic notification
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         Log.d(TAG, "Characteristic has been changed and the notification received.");
-        Log.d(TAG, "Value array: " + characteristic.getValue());
-        Log.d(TAG, "Value[0]: " + characteristic.getValue()[0]);
-        Log.d(TAG, "Value converted: " + convertRawValue(characteristick.getValue()));
-        Log.d(TAG, "Descriptors:" + characteristic.getDescriptors());
+        //Log.d(TAG, "Value array: " + characteristic.getValue());
+        //Log.d(TAG, "Value[0]: " + characteristic.getValue()[0]);
+        Log.d(TAG, "Value converted: " + convertRawValue(characteristic.getValue()));
+        //Log.d(TAG, "Descriptors:" + characteristic.getDescriptors());
 
         if(timeZero == 0) {
             timeZero = SystemClock.elapsedRealtime()/1000l;
