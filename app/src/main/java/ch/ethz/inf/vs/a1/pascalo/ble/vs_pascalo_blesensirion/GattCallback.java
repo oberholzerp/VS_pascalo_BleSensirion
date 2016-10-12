@@ -29,10 +29,9 @@ public class GattCallback extends BluetoothGattCallback {
     private LineGraphSeries<DataPoint> tempSeries;
     private LineGraphSeries<DataPoint> humidSeries;
     private long timeZero;
-    private BluetoothGattDescriptor mTemperatureDescriptorWriteAttempt;
-    private BluetoothGattDescriptor mHumidityDescriptorWriteAttempt;
 
-
+    public BluetoothGattDescriptor mTemperatureDescriptorWriteAttempt;
+    public BluetoothGattDescriptor mHumidityDescriptorWriteAttempt;
     public BluetoothGattService mTemperatureService;
     public BluetoothGattService mHumidityService;
 

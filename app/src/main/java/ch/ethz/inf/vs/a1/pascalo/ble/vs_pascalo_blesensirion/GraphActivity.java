@@ -18,6 +18,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.NOTIFICATION_DESCRIPTOR_UUID;
+import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC;
 
 public class GraphActivity extends AppCompatActivity implements Button.OnClickListener {
@@ -101,13 +102,18 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         Log.d(TAG, "mBluetoothGatt is being disconnected in onStop");
 
 
-        if (null != mGattCallback.mTemperatureService) {
+        if (null != mGattCallback.mTemperatureService && null != mGattCallback.mHumidityService) {
             BluetoothGattCharacteristic tempChar =  mGattCallback.mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
-            BluetoothGattDescriptor descriptor = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
-            descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+            mGattCallback.mTemperatureDescriptorWriteAttempt = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
+            mGattCallback.mTemperatureDescriptorWriteAttempt.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
 
-            mBluetoothGatt.writeDescriptor(descriptor);
+            BluetoothGattCharacteristic humidChar =  mGattCallback.mHumidityService.getCharacteristic(UUID_HUMIDITY_CHARACTERISTIC);
+            mGattCallback.mHumidityDescriptorWriteAttempt = humidChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
+            mGattCallback.mHumidityDescriptorWriteAttempt.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+
+            mBluetoothGatt.writeDescriptor(mGattCallback.mTemperatureDescriptorWriteAttempt);
             mBluetoothGatt.setCharacteristicNotification(tempChar, false);
+            mBluetoothGatt.setCharacteristicNotification(humidChar, false);
         }
 
 
