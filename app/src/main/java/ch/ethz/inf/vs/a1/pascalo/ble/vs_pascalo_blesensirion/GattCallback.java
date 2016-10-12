@@ -7,8 +7,12 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -26,10 +30,15 @@ public class GattCallback extends BluetoothGattCallback {
     private Context mContext;
     private BluetoothGattService mTemperatureService;
     private BluetoothGattService mHumidityService;
+    private LineGraphSeries<DataPoint> tempSeries;
+    private LineGraphSeries<DataPoint> humidSeries;
+    private long timeZero;
 
-    public GattCallback (Context context) {
+    public GattCallback (Context context, LineGraphSeries<DataPoint> tempSeries, LineGraphSeries<DataPoint> humidSeries) {
         super();
         mContext = context;
+        this.tempSeries = tempSeries;
+        this.humidSeries = humidSeries;
     }
 
     @Override
@@ -95,7 +104,7 @@ public class GattCallback extends BluetoothGattCallback {
         if (value[0] == (byte)1) {
             Log.d(TAG, "Writing the one-byte was successful :)");
         } else {
-            Log.d(TAG, "Writing the one-byte was unsuccessful :)");
+            Log.d(TAG, "Writing the one-byte was unsuccessful :(");
         }
 
         // Set up notifications
@@ -130,6 +139,13 @@ public class GattCallback extends BluetoothGattCallback {
         Log.d(TAG, "Value[0]: " + characteristic.getValue()[0]);
         Log.d(TAG, "Value converted: " + convertRawValue(characteristic.getValue()));
         Log.d(TAG, "Descriptors:" + characteristic.getDescriptors());
+
+        if(timeZero == 0) {
+            timeZero = SystemClock.elapsedRealtime()/1000l;
+        }
+        long passedTime = SystemClock.elapsedRealtime()/1000l - timeZero;
+        float temperature = convertRawValue(characteristic.getValue());
+        tempSeries.appendData(new DataPoint(passedTime, temperature), true, 150);
     }
 
 
