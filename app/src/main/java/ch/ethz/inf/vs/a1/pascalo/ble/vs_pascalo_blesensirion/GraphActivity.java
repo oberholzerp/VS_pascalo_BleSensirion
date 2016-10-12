@@ -51,11 +51,17 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         humidSeries.setColor(Color.BLUE);
 
         graph.addSeries(tempSeries);
-        graph.addSeries(humidSeries);
-        graph.getViewport().setMaxX(15.0);
-        graph.getViewport().setMinX(0.0);
-        graph.getViewport().setMaxY(100.0);
-        graph.getViewport().setMinY(0.0);
+        graph.getSecondScale().addSeries(humidSeries);
+
+        graph.getViewport().setMinX(-15.0);
+        graph.getViewport().setMaxX(0.0);
+
+        graph.getViewport().setMinY(10.0);
+        graph.getViewport().setMaxY(30.0);
+
+        graph.getSecondScale().setMinY(0.0);
+        graph.getSecondScale().setMaxY(100.0);
+
 
         mDisconnectButton = (Button) findViewById(R.id.disconnect_button);
         mDisconnectButton.setOnClickListener(this);
