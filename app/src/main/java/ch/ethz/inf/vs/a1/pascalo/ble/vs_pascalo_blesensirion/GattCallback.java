@@ -10,6 +10,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -24,8 +25,8 @@ import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT
 public class GattCallback extends BluetoothGattCallback {
     private final String TAG = "GattCallback";
     private Context mContext;
-    private BluetoothGattService mTemperatureService;
-    private BluetoothGattService mHumidityService;
+    public BluetoothGattService mTemperatureService;
+    public BluetoothGattService mHumidityService;
 
     public GattCallback (Context context) {
         super();
@@ -64,6 +65,9 @@ public class GattCallback extends BluetoothGattCallback {
             BluetoothGattDescriptor descriptor = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             gatt.writeDescriptor(descriptor);
+
+            Log.d(TAG, "The value of ENABLE_NOTIFICATION_SERVICE is: " + Arrays.toString(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE));
+            Log.d(TAG, "The value of ENABLE_NOTIFICATION_SERVICE is: " + Arrays.toString(new byte[] {(byte)1, (byte)2, (byte)3}));
 
             Log.d(TAG, "Whe have the following number of characteristics in the temperature service: " + String.valueOf(mTemperatureService.getCharacteristics().size()));
 

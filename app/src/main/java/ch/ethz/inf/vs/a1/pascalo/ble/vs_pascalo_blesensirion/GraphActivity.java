@@ -2,6 +2,8 @@ package ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +15,9 @@ import android.widget.TextView;
 import com.jjoe64.graphview.*;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.NOTIFICATION_DESCRIPTOR_UUID;
+import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC;
 
 public class GraphActivity extends AppCompatActivity implements Button.OnClickListener {
 
@@ -70,6 +75,18 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
     @Override
     protected void onStop() {
         Log.d(TAG, "mBluetoothGatt is being disconnected in onStop");
+
+
+        if (null != mGattCallback.mTemperatureService) {
+            BluetoothGattCharacteristic tempChar =  mGattCallback.mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
+            BluetoothGattDescriptor descriptor = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
+            descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+
+            mBluetoothGatt.writeDescriptor(descriptor);
+            mBluetoothGatt.setCharacteristicNotification(tempChar, false);
+        }
+
+
         mBluetoothGatt.disconnect();
         super.onStop();
     }
