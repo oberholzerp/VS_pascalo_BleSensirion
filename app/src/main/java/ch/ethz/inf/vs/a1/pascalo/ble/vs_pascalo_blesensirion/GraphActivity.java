@@ -42,8 +42,12 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         graph.getViewport().setScalable(true);
         graph.getViewport().setScrollable(true);
         graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setYAxisBoundsManual(false);
-        graph.getGridLabelRenderer().setVerticalAxisTitle(getResources().getString(R.string.axis_title));
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getGridLabelRenderer().setVerticalAxisTitleColor(Color.MAGENTA);
+        graph.getGridLabelRenderer().setVerticalAxisTitle(getResources().getString(R.string.temp_axis_title));
+
+        graph.getSecondScale().setVerticalAxisTitleColor(Color.BLUE);
+        graph.getSecondScale().setVerticalAxisTitle(getResources().getString(R.string.humid_axis_title));
 
         LineGraphSeries<DataPoint> tempSeries = new LineGraphSeries();
         tempSeries.setColor(Color.MAGENTA);
@@ -56,8 +60,8 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         graph.getViewport().setMinX(-15.0);
         graph.getViewport().setMaxX(0.0);
 
-        graph.getViewport().setMinY(10.0);
-        graph.getViewport().setMaxY(30.0);
+        graph.getViewport().setMinY(19.0);
+        graph.getViewport().setMaxY(32.0);
 
         graph.getSecondScale().setMinY(0.0);
         graph.getSecondScale().setMaxY(100.0);

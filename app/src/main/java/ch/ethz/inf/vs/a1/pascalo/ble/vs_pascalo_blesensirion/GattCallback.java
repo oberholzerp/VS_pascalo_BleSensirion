@@ -14,16 +14,13 @@ import android.widget.Toast;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.UUID;
 
+import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_HUMIDITY_SERVICE;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_TEMPERATURE_SERVICE;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_TEMPERATURE_CHARACTERISTIC;
-import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.UUID_HUMIDITY_CHARACTERISTIC;
 import static ch.ethz.inf.vs.a1.pascalo.ble.vs_pascalo_blesensirion.SensirionSHT31UUIDS.NOTIFICATION_DESCRIPTOR_UUID;
 
 public class GattCallback extends BluetoothGattCallback {
@@ -32,6 +29,10 @@ public class GattCallback extends BluetoothGattCallback {
     private LineGraphSeries<DataPoint> tempSeries;
     private LineGraphSeries<DataPoint> humidSeries;
     private long timeZero;
+    private BluetoothGattDescriptor mTemperatureDescriptorWriteAttempt;
+    private BluetoothGattDescriptor mHumidityDescriptorWriteAttempt;
+
+
     public BluetoothGattService mTemperatureService;
     public BluetoothGattService mHumidityService;
 
@@ -66,27 +67,32 @@ public class GattCallback extends BluetoothGattCallback {
         if (status == BluetoothGatt.GATT_SUCCESS) {
 
             mTemperatureService = gatt.getService(UUID_TEMPERATURE_SERVICE);
-            //mHumidityService = gatt.getService(UUID_HUMIDITY_SERVICE);
+            mHumidityService = gatt.getService(UUID_HUMIDITY_SERVICE);
 
-            // Set up notifications (
+            // Set up notifications
             BluetoothGattCharacteristic tempChar =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
             gatt.setCharacteristicNotification(tempChar, true);
-            BluetoothGattDescriptor descriptor = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            gatt.writeDescriptor(descriptor);
+            BluetoothGattDescriptor tempDesc = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
+            tempDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mTemperatureDescriptorWriteAttempt = tempDesc;
 
-            Log.d(TAG, "The value of ENABLE_NOTIFICATION_SERVICE is: " + Arrays.toString(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE));
-            Log.d(TAG, "The value of ENABLE_NOTIFICATION_SERVICE is: " + Arrays.toString(new byte[] {(byte)1, (byte)2, (byte)3}));
+            tempChar = mHumidityService.getCharacteristic(UUID_HUMIDITY_CHARACTERISTIC);
+            gatt.setCharacteristicNotification(tempChar, true);
+            tempDesc = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
+            tempDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mHumidityDescriptorWriteAttempt = tempDesc;
 
-            Log.d(TAG, "Whe have the following number of characteristics in the temperature service: " + String.valueOf(mTemperatureService.getCharacteristics().size()));
+            // In the callback of this one the other descriptor shall also be written
+            gatt.writeDescriptor(mTemperatureDescriptorWriteAttempt);
 
-            BluetoothGattCharacteristic oldChara =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
+
+            /*BluetoothGattCharacteristic oldChara =  mTemperatureService.getCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC);
             BluetoothGattCharacteristic newChara = new BluetoothGattCharacteristic(UUID_TEMPERATURE_CHARACTERISTIC, oldChara.getProperties(), oldChara.getPermissions() |  BluetoothGattCharacteristic.PERMISSION_WRITE );
             mTemperatureService.addCharacteristic(newChara);
 
             byte[] one_byte = {(byte)1};
             newChara.setValue(one_byte);
-            gatt.writeCharacteristic(newChara);
+            gatt.writeCharacteristic(newChara);*/
 
 
 
@@ -97,11 +103,11 @@ public class GattCallback extends BluetoothGattCallback {
 
         }
     }
-
+/*
     @Override
     public void onCharacteristicWrite( BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
 
-        Log.d(TAG, "onCharacterristicWrite reports status of: " + String.valueOf(status));
+        Log.d(TAG, "onCharacteristicWrite reports status of: " + String.valueOf(status));
 
         byte[] value = characteristic.getValue();
 
@@ -117,39 +123,50 @@ public class GattCallback extends BluetoothGattCallback {
         BluetoothGattDescriptor descriptor = tempChar.getDescriptor(NOTIFICATION_DESCRIPTOR_UUID);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         gatt.writeDescriptor(descriptor);
-        /*
-        gatt.readCharacteristic(characteristic);
 
-        Log.d(TAG, "First raw value written has a length in Byte of: " + String.valueOf(value.length));
-        Log.d(TAG, "First raw value written has is: " + Arrays.toString(value));
-        Log.d(TAG, "First value written is: " + String.valueOf(convertRawValue(value)));
-*/
     }
+*/
+    @Override
+    public void onDescriptorWrite (BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
 
- /*   @Override
-    public void onCharacteristicRead (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status){
-        byte[] value = characteristic.getValue();
+        if (BluetoothGatt.GATT_FAILURE == status) {
+            Log.d(TAG, "onDescriptorWrite reports GATT_FAILURE");
+            return;
+        }
 
-        Log.d(TAG, "First raw value to be read has a length in Byte of: " + String.valueOf(value.length));
-        Log.d(TAG, "First raw value to be read has is: " + Arrays.toString(value));
-        Log.d(TAG, "First value to be read is: " + String.valueOf(convertRawValue(value)));
-    }*/
+        if (mTemperatureDescriptorWriteAttempt == descriptor) {
+            Log.d(TAG, "onDescriptorWrite reports temperature descriptor as written, writing humidity descriptor...");
+            gatt.writeDescriptor(mHumidityDescriptorWriteAttempt);
+            return;
+        }
+
+        if (mHumidityDescriptorWriteAttempt == descriptor) {
+            Log.d(TAG, "onDescriptorWrite reports humidity descriptor as written.");
+
+        }
+
+    }
 
     @Override
     // Characteristic notification
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         Log.d(TAG, "Characteristic has been changed and the notification received.");
-        //Log.d(TAG, "Value array: " + characteristic.getValue());
-        //Log.d(TAG, "Value[0]: " + characteristic.getValue()[0]);
         Log.d(TAG, "Value converted: " + convertRawValue(characteristic.getValue()));
-        //Log.d(TAG, "Descriptors:" + characteristic.getDescriptors());
 
         if(timeZero == 0) {
-            timeZero = SystemClock.elapsedRealtime()/1000l;
+            timeZero = SystemClock.elapsedRealtime()/1000L;
         }
-        long passedTime = SystemClock.elapsedRealtime()/1000l - timeZero;
-        float temperature = convertRawValue(characteristic.getValue());
-        tempSeries.appendData(new DataPoint(passedTime, temperature), true, 150);
+        long passedTime = SystemClock.elapsedRealtime()/1000L - timeZero;
+        float dataPoint = convertRawValue(characteristic.getValue());
+
+        if (characteristic.getUuid().equals(UUID_TEMPERATURE_CHARACTERISTIC)) {
+            tempSeries.appendData(new DataPoint(passedTime, dataPoint), true, 150);
+        } else if (characteristic.getUuid().equals(UUID_HUMIDITY_CHARACTERISTIC)) {
+            humidSeries.appendData(new DataPoint(passedTime, dataPoint), true, 150);
+        } else {
+            Log.d(TAG, "A strange characteristic came back, it's not humidity nor temperature. It's: " + characteristic.getUuid() .toString());
+        }
+
     }
 
 
