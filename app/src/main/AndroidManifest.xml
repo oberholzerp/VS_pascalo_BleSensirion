@@ -20,11 +20,12 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GraphActivity"></activity>
+        <activity   android:name=".GraphActivity"
+                    android:screenOrientation="locked">
+        </activity>
     </application>
 
 </manifest>

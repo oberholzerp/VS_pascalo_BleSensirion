@@ -27,6 +27,11 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
 
+        if (null != savedInstanceState) {
+            Log.d(TAG, "Bundle contains: " + savedInstanceState.toString());
+        }
+
+
         mDisconnectButton = (Button) findViewById(R.id.disconnect_button);
         mDisconnectButton.setOnClickListener(this);
 
@@ -45,6 +50,8 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         graph.getViewport().setYAxisBoundsManual(false);
         graph.getGridLabelRenderer().setVerticalAxisTitle(getResources().getString(R.string.axis_title));
 
+
+
     }
 
     @Override
@@ -52,17 +59,32 @@ public class GraphActivity extends AppCompatActivity implements Button.OnClickLi
         super.onStart();
 
         if (mBluetoothGatt == null) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(getApplicationContext(), true, mGattCallback);
+            Log.d(TAG, "mBluetoothGatt is null in onStart creating a new one");
+            mBluetoothGatt = mBluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
         } else {
+            Log.d(TAG, "mBluetoothGatt is non-null in onStart connecting again");
             mBluetoothGatt.connect();
         }
     }
 
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "mBluetoothGatt is being disconnected in onStop");
+        mBluetoothGatt.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy()  {
+        Log.d(TAG, "mBluetoothGatt is being closed in onDestroy");
+        mBluetoothGatt.close();
+        super.onDestroy();
+    }
 
     @Override
     public void onClick(View v) {
-        mBluetoothGatt.disconnect();
-        mBluetoothGatt.close();
+        // Don't call mBluetoothGatt close or disconnect here, because this will
+        // happen in onStop and on Destroy anyway
         finish();
     }
 }
